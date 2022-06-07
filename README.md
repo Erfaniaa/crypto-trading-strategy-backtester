@@ -1,1 +1,1 @@
-# crypto-strategy-trading-backtester
+# crypto-trading-strategy-backtester
