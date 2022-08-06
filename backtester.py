@@ -17,6 +17,8 @@ import binance_api
 import utils
 import position
 from position_result_and_candles import PositionResultAndCandles
+import plot_maker
+import report_maker
 
 
 class Backtester():
@@ -34,7 +36,9 @@ class Backtester():
 				 train_csv_file_path, test_csv_file_path, csv_file_delimiter,
 				 maximum_open_positions_count, all_timeframes_list, timeframe, indicators_timeframe,
 				 minimum_number_of_candles_to_start_trading, important_recent_candles_timeframe,
-				 important_recent_candles_count, coin_maximum_price, open_position_timeframe):
+				 important_recent_candles_count, coin_maximum_price, open_position_timeframe,
+				 test_set_size_ratio, plot_file_path, positions_csv_report_file_path,
+				 deposit_changes_csv_report_file_path):
 					self.coins_symbol = coins_symbol
 					self.start_deposit = start_deposit
 					self.total_first_coins = start_deposit
@@ -74,6 +78,10 @@ class Backtester():
 					self.minimum_number_of_candles_to_start_trading = minimum_number_of_candles_to_start_trading
 					self.coin_maximum_price = coin_maximum_price
 					self.open_position_timeframe = open_position_timeframe
+					self.test_set_size_ratio = test_set_size_ratio
+					self.plot_file_path = plot_file_path
+					self.positions_csv_report_file_path = positions_csv_report_file_path
+					self.deposit_changes_csv_report_file_path = deposit_changes_csv_report_file_path
 					
 
 	def download_or_load_candles(self, timeframe):
@@ -481,6 +489,7 @@ class Backtester():
 		for i in range(open_long_positions_count):
 			self.open_long_positions_value += (1 + config.LEVERAGE * (self.current_candle.close - self.open_long_positions_list[i].entry_price) / self.open_long_positions_list[i].entry_price) * self.open_long_positions_list[i].first_coins_in_position
 		self.open_positions_value = self.open_short_positions_value + self.open_long_positions_value
+		self.final_deposit = self.total_first_coins + self.open_positions_value
 
 
 	def update_open_short_positions_value(self):
@@ -489,6 +498,7 @@ class Backtester():
 		for i in range(0, open_short_positions_count):
 			self.open_short_positions_value += (1 - config.LEVERAGE * (self.current_candle.close - self.open_short_positions_list[i].entry_price) / self.open_short_positions_list[i].entry_price) * self.open_short_positions_list[i].first_coins_in_position
 		self.open_positions_value = self.open_short_positions_value + self.open_long_positions_value
+		self.final_deposit = self.total_first_coins + self.open_positions_value
 
 
 	def print_main_backtest_results(self):
@@ -496,6 +506,121 @@ class Backtester():
 		print("closed positions count:", len(self.closed_positions_list))
 		print("win rate:", self.total_wins / len(self.closed_positions_list), "\n")
 		print("take profits win rate:", self.total_take_profit_wins / len(self.closed_positions_list), "\n")
+
+
+	def prepare_train_set_and_test_set(self):
+		self.train_set_list = []
+		self.test_set_list = []
+		position_result_and_candles_list_len = len(self.position_result_and_candles_list)
+
+		for i in range(position_result_and_candles_list_len):
+			if i >= (1 - self.test_set_size_ratio) * position_result_and_candles_list_len:
+				self.test_set_list.append(self.position_result_and_candles_list[i])
+			else:
+				self.train_set_list.append(self.position_result_and_candles_list[i])
+
+
+	def save_train_set_and_test_set_to_csv(self):
+		with open(self.train_csv_file_path, 'w') as positions_dataset_csv_file:
+			for position_result_and_candle in self.train_set_list:
+				positions_dataset_csv_file.write(str(position_result_and_candle) + "\n")
+
+		with open(self.test_csv_file_path, 'w') as positions_dataset_csv_file:
+			for position_result_and_candle in self.test_set_list:
+				positions_dataset_csv_file.write(str(position_result_and_candle) + "\n")
+
+
+	def save_plots_to_file(self):
+		plot_maker.add_plot("deposit", self.plot_deposits_list, self.plot_deposit_datetimes_list, 2, 1, 1)
+		plot_maker.add_plot(self.coins_symbol + " price", self.plot_close_prices, self.plot_datetimes, 2, 1, 2)
+		plot_maker.save_plot_to_file(self.plot_file_path)
+
+
+	def show_plots(self):
+		plot_maker.show_plot()
+
+
+	def print_candles_statistical_parameters(self):
+		report_maker.print_statistical_parameters("candles_open_to_close_list", self.candles_open_to_close_list, self.report_percentiles_count)
+		report_maker.print_statistical_parameters("candles_open_to_close_abs_list", self.candles_open_to_close_abs_list, self.report_percentiles_count)
+		report_maker.print_statistical_parameters("candles_open_to_close_random_signed_list", self.candles_open_to_close_random_signed_list, self.report_percentiles_count)
+		report_maker.print_statistical_parameters("candles_open_to_low_list", self.candles_open_to_low_list, self.report_percentiles_count)
+		report_maker.print_statistical_parameters("candles_open_to_high_list", self.candles_open_to_high_list, self.report_percentiles_count)
+		report_maker.print_statistical_parameters("candles_low_to_high_list", self.candles_low_to_high_list, self.report_percentiles_count)
+		report_maker.print_statistical_parameters("candles_low_and_high_to_open_list", self.candles_low_and_high_to_open_list, self.report_percentiles_count)
+		report_maker.print_statistical_parameters("candles_low_and_high_to_open_abs_list", self.candles_low_and_high_to_open_abs_list, self.report_percentiles_count)
+
+		report_maker.print_statistical_parameters("candles_open_to_close_percent_list", self.candles_open_to_close_percent_list, self.report_percentiles_count)
+		report_maker.print_statistical_parameters("candles_open_to_close_abs_percent_list", self.candles_open_to_close_abs_percent_list, self.report_percentiles_count)
+		report_maker.print_statistical_parameters("candles_open_to_close_random_signed_percent_list", self.candles_open_to_close_random_signed_percent_list, self.report_percentiles_count)
+		report_maker.print_statistical_parameters("candles_open_to_low_percent_list", self.candles_open_to_low_percent_list, self.report_percentiles_count)
+		report_maker.print_statistical_parameters("candles_open_to_high_percent_list", self.candles_open_to_high_percent_list, self.report_percentiles_count)
+		report_maker.print_statistical_parameters("candles_low_to_high_percent_list", self.candles_low_to_high_percent_list, self.report_percentiles_count)
+		report_maker.print_statistical_parameters("candles_low_and_high_to_open_percent_list", self.candles_low_and_high_to_open_percent_list, self.report_percentiles_count)
+		report_maker.print_statistical_parameters("candles_low_and_high_to_open_abs_percent_list", self.candles_low_and_high_to_open_abs_percent_list, self.report_percentiles_count)
+
+
+	def prepare_closed_positions_statistics(self):
+		self.closed_positions_max_profit_percents_list = []
+		self.closed_positions_min_profit_percents_list = []
+		self.closed_positions_profit_percents_list = []
+		for closed_position in self.closed_positions_list:
+			self.closed_positions_max_profit_percents_list.append(closed_position.max_profit_percent)
+			self.closed_positions_min_profit_percents_list.append(closed_position.min_profit_percent)
+			self.closed_positions_profit_percents_list.append(closed_position.profit_percent)
+
+
+	def print_closed_positions_statistics(self):
+		report_maker.print_statistical_parameters("max_profit_percents", self.closed_positions_max_profit_percents_list, self.report_percentiles_count)
+		report_maker.print_statistical_parameters("min_profit_percents", self.closed_positions_min_profit_percents_list, self.report_percentiles_count)
+		report_maker.print_statistical_parameters("profit_percents", self.closed_positions_profit_percents_list, self.report_percentiles_count)
+
+
+	def prepare_deposit_changes_statistics(self):
+		self.deposit_daily_changes_percent = []
+		self.deposit_weekly_changes_percent = []
+		self.deposit_biweekly_changes_percent = []
+		self.deposit_monthly_changes_percent = []
+		self.deposit_bimonthly_changes_percent = []
+		self.deposit_trimonthly_changes_percent = []
+		self.deposit_yearly_changes_percent = []
+		for i in range(len(self.plot_deposits_list)):
+			if i >= utils.convert_candles_count(self.timeframe, "d1"):
+				self.deposit_daily_changes_percent.append(100 * (self.plot_deposits_list[i] - self.plot_deposits_list[i - utils.convert_candles_count(self.timeframe, "d1")]) / self.plot_deposits_list[i - utils.convert_candles_count(self.timeframe, "d1")])
+			if i >= utils.convert_candles_count(self.timeframe, "w1"):
+				self.deposit_weekly_changes_percent.append(100 * (self.plot_deposits_list[i] - self.plot_deposits_list[i - utils.convert_candles_count(self.timeframe, "w1")]) / self.plot_deposits_list[i - utils.convert_candles_count(self.timeframe, "w1")])
+			if i >= utils.convert_candles_count(self.timeframe, "w2"):
+				self.deposit_biweekly_changes_percent.append(100 * (self.plot_deposits_list[i] - self.plot_deposits_list[i - utils.convert_candles_count(self.timeframe, "w2")]) / self.plot_deposits_list[i - utils.convert_candles_count(self.timeframe, "w2")])
+			if i >= utils.convert_candles_count(self.timeframe, "M1"):
+				self.deposit_monthly_changes_percent.append(100 * (self.plot_deposits_list[i] - self.plot_deposits_list[i - utils.convert_candles_count(self.timeframe, "M1")]) / self.plot_deposits_list[i - utils.convert_candles_count(self.timeframe, "M1")])
+			if i >= utils.convert_candles_count(self.timeframe, "M2"):
+				self.deposit_bimonthly_changes_percent.append(100 * (self.plot_deposits_list[i] - self.plot_deposits_list[i - utils.convert_candles_count(self.timeframe, "M2")]) / self.plot_deposits_list[i - utils.convert_candles_count(self.timeframe, "M2")])
+			if i >= utils.convert_candles_count(self.timeframe, "M3"):
+				self.deposit_trimonthly_changes_percent.append(100 * (self.plot_deposits_list[i] - self.plot_deposits_list[i - utils.convert_candles_count(self.timeframe, "M3")]) / self.plot_deposits_list[i - utils.convert_candles_count(self.timeframe, "M3")])
+			if i >= utils.convert_candles_count(self.timeframe, "y1"):
+				self.deposit_yearly_changes_percent.append(100 * (self.plot_deposits_list[i] - self.plot_deposits_list[i - utils.convert_candles_count(self.timeframe, "y1")]) / self.plot_deposits_list[i - utils.convert_candles_count(self.timeframe, "y1")])
+
+
+	def print_deposit_changes_statistics(self):
+		report_maker.print_statistical_parameters("deposit_daily_changes_percent", self.deposit_daily_changes_percent, self.report_percentiles_count)
+		report_maker.print_statistical_parameters("deposit_weekly_changes_percent", self.deposit_weekly_changes_percent, self.report_percentiles_count)
+		report_maker.print_statistical_parameters("deposit_biweekly_changes_percent", self.deposit_biweekly_changes_percent, self.report_percentiles_count)
+		report_maker.print_statistical_parameters("deposit_monthly_changes_percent", self.deposit_monthly_changes_percent, self.report_percentiles_count)
+		report_maker.print_statistical_parameters("deposit_bimonthly_changes_percent", self.deposit_bimonthly_changes_percent, self.report_percentiles_count)
+		report_maker.print_statistical_parameters("deposit_trimonthly_changes_percent", self.deposit_trimonthly_changes_percent, self.report_percentiles_count)
+		report_maker.print_statistical_parameters("deposit_yearly_changes_percent", self.deposit_yearly_changes_percent, self.report_percentiles_count)
+
+
+	def save_positions_to_csv(self):
+		print("Writing to " + self.positions_csv_report_file_path + "...")
+		report_maker.generate_positions_csv_report(self.positions_csv_report_file_path, self.POSITIONS_CSV_REPORT_COLUMN_NAMES, self.closed_positions_list)
+		print("Writing to " + self.positions_csv_report_file_path + " finished.\n")
+
+
+	def save_deposit_changes_to_csv(self):
+		print("Writing to " + self.deposit_changes_csv_report_file_path + "...")
+		report_maker.generate_deposit_changes_csv_report(self.deposit_changes_csv_report_file_path, self.DEPOSIT_CHANGES_CSV_REPORT_COLUMN_NAMES, self.start_deposit, self.final_deposit, self.deposit_monthly_changes_percent, deposit_trimonthly_changes_percent, deposit_yearly_changes_percent)
+		print("Writing to " + self.deposit_changes_csv_report_file_path + " finished.\n")
 
 
 	def iterate_candles(self):
