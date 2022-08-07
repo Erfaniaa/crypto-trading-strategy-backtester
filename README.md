@@ -2,8 +2,7 @@
 
 Easy-to-use cryptocurrency trading strategy simulator
 
-![backtester](https://user-images.githubusercontent.com/7780269/183297986-e82d509c-7c3c-4a50-b25b-39d0412c82a4.png)
-
+![backtester](https://user-images.githubusercontent.com/7780269/183315653-e6414494-2341-4a51-a5de-962b3d8366b8.png)
 
 ## Features
 
