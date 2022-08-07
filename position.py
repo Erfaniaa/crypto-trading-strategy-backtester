@@ -32,7 +32,4 @@ class Position:
 			   str(self.profit_percent) + "," + \
 			   str(self.take_profit_price) + "," + \
 			   str(self.stop_loss_price) + "," + \
-			   str(self.exit_type) + "," + \
-			   str(self.exchange_fee) + "," + \
-			   str(self.recent_candles_list) + "," + \
-			   str(self.candles_index)
+			   str(self.exit_type)

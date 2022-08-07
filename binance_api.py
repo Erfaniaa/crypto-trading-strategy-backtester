@@ -1,5 +1,5 @@
 from datetime import datetime
-from models import Candle
+from candle import Candle
 import requests
 import json
 from types import SimpleNamespace
@@ -42,11 +42,13 @@ def count_w1_candles(start_timestamp, end_timestamp):
 	return int(math.ceil((round(((end_timestamp - start_timestamp) / 604800000)) / 1000)))
 
 
-def get_candles_in_range(symbol, interval, startTime, endTime, limit='1000'):
+def get_candles_in_range(symbol, interval, start_time, end_time, limit='1000'):
+	start_time = int(start_time)
+	end_time = int(end_time)
 	headers = {'Content-Type': 'application/json; charset=utf-8', 'X-MBX-APIKEY': 'i8322dmyBsrk9A8dNBliUExbVHmDPbNn1cqvOAHZPWdYc7KGJ6kX767V3Dg7jWmo'}
-	r = requests.get(f"https://api.binance.com/api/v3/klines?symbol={symbol}&limit={limit}&startTime={startTime}&endTime={endTime}&interval={interval}", headers=headers)
+	r = requests.get(f"https://api.binance.com/api/v3/klines?symbol={symbol}&limit={limit}&startTime={start_time}&endTime={end_time}&interval={interval}", headers=headers)
 	m = json.loads(r.content, object_hook=lambda d: SimpleNamespace(**d))
-	candles =[]
+	candles = []
 	i = 0
 	for u in m: 
 		otime = datetime.fromtimestamp(int(''.join(str(u[0]).split())[:-3]))
@@ -281,3 +283,25 @@ def get_candles_w1(start_timestamp, end_timestamp, symbol, show_log=True):
 	if show_log:
 		print("Downloading w1 candles finished.")
 	return arr
+
+
+def get_candles(timeframe, start_timestamp, end_timestamp, symbol, show_log=True):
+	if timeframe == "m1":
+		return get_candles_m1(start_timestamp, end_timestamp, symbol, show_log)
+	if timeframe == "m5":
+		return get_candles_m5(start_timestamp, end_timestamp, symbol, show_log)
+	if timeframe == "m15":
+		return get_candles_m15(start_timestamp, end_timestamp, symbol, show_log)
+	if timeframe == "m30":
+		return get_candles_m30(start_timestamp, end_timestamp, symbol, show_log)
+	if timeframe == "h1":
+		return get_candles_h1(start_timestamp, end_timestamp, symbol, show_log)
+	if timeframe == "h2":
+		return get_candles_h2(start_timestamp, end_timestamp, symbol, show_log)
+	if timeframe == "h4":
+		return get_candles_h4(start_timestamp, end_timestamp, symbol, show_log)
+	if timeframe == "d1":
+		return get_candles_d1(start_timestamp, end_timestamp, symbol, show_log)
+	if timeframe == "w1":
+		return get_candles_w1(start_timestamp, end_timestamp, symbol, show_log)
+	return None
