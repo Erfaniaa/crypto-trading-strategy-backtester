@@ -7,9 +7,9 @@ Easy-to-use cryptocurrency trading strategy simulator
 
 ## Features
 
-- You can run it fast and it's easy to use.
+- You can run it fast, and it is easy to use.
 - There are no complexities and no database usage in this project. Even dependencies are a few.
-- It's easy for modifying and customization.
+- It is easy to modify and customize.
 - It generates many different statistical parameters in a complete report.
 - This project generates practical datasets for data scientists.
 - You can read the code for educational purposes.
@@ -20,11 +20,11 @@ Easy-to-use cryptocurrency trading strategy simulator
 2. Run `pip3 install -r requirements.txt`.
 3. Run `python3 main.py`.
 
-This will backtest an example strategy on trading Bitcoin.
+This will backtest an example strategy for trading Bitcoin.
 
 ## Config
 
-To define your own strategy you can:
+To define the strategy, you can:
 
 - Change `config.py` constants.
 - Define new indicators in `indicators.py`.
@@ -39,16 +39,16 @@ To define your own strategy you can:
 - `OPEN_POSITION_FEE_PERCENT` and `CLOSE_POSITION_FEE_PERCENT`: Exchange fees
 - `USE_LONG_POSITIONS` and `USE_SHORT_POSITIONS`: Are we trading in the futures market?
 - `TAKE_PROFIT_PERCENTS_LIST` and `STOP_LOSS_PERCENTS_LIST`: Set multiple take profit and stop losses for your positions
-- `MOVING_AVERAGE_SIZE` and`INDICATORS_TIMEFRAME`: If you are using some indicators, you can setup them here.
+- `MOVING_AVERAGE_SIZE` and`INDICATORS_TIMEFRAME`: If use some indicators, you can set them up here.
 - `START_YEAR`, `START_MONTH`, `START_DAY`, `START_HOUR`, `START_MINUTE` , and `START_SECOND`: Starting time for trading
 - `END_YEAR`, `END_MONTH`, `END_DAY`, `END_HOUR`, `END_MINUTE` , and `END_SECOND`: Starting time for trading
 - `TIMEFRAME`: The main time frame used for iterating candles and checking the take profits and stop losses
 - `IMPORTANT_RECENT_CANDLES_TIMEFRAME`: Generated output dataset candles timeframe
 - `IMPORTANT_RECENT_CANDLES_COUNT`: Number of candles in the generated output dataset
-- `OPEN_POSITION_TIMEFRAME`: We want to open position at some exact rounded times
-- `REPORT_PERCENTILES_COUNT`: Number of percentiles used in statistical analysis report
+- `OPEN_POSITION_TIMEFRAME`: We want to open the position at some exact rounded times
+- `REPORT_PERCENTILES_COUNT`: Number of percentiles used in the statistical analysis report
 - `TEST_SET_SIZE_RATIO`: How big is the final generated test set of our dataset?
-- `MINIMUM_NUMBER_OF_CANDLES_TO_START_TRADING`: Don't start trading soon!
+- `MINIMUM_NUMBER_OF_CANDLES_TO_START_TRADING`: Do not start trading soon!
 
 ## Output
 
