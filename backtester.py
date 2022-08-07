@@ -1,24 +1,16 @@
 import os
 import pickle
 import random
-
-import pandas as pd
-import torch
-import typer
-import pycm
-import skorch
+import datetime
 
 import indicators
-import configparser
-
-import datetime
 import config
 import binance_api
 import utils
 import position
-from position_result_and_candles import PositionResultAndCandles
 import plot_maker
 import report_maker
+from position_result_and_candles import PositionResultAndCandles
 
 
 class Backtester():
