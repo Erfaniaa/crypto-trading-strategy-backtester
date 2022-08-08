@@ -10,6 +10,7 @@ Easy-to-use cryptocurrency trading strategy simulator
 - There are no complexities and no database usage in this project. Even dependencies are a few.
 - It is easy to modify and customize.
 - It generates many different statistical parameters in a complete report.
+- This project saves the downloaded data for offline usage, so no unnecessary downloads are required.
 - This project generates practical datasets for data scientists.
 - You can read the code for educational purposes.
 
