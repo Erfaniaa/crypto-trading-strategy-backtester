@@ -1,4 +1,4 @@
-import torch
+import pandas as pd
 
 
 class Candle:
@@ -19,3 +19,22 @@ class Candle:
 			", close:" + str(self.close) + \
 			", volume:" + str(self.volume) + \
 			", close_time:" + str(self.close_time)
+
+
+	def to_tuple(self):
+		return (self.open_time, self.open, self.high, self.low, self.close)
+
+
+	@staticmethod
+	def candles_list_to_tuples_list(candles_list):
+		tuples_list = [candle.to_tuple() for candle in candles_list]
+		return tuples_list
+
+
+	@staticmethod
+	def candles_list_to_pandas_dataframe(candles_list):
+		tuples_list = Candle.candles_list_to_tuples_list(candles_list)
+		df = pd.DataFrame(tuples_list, columns=["Date", "Open", "High", "Low", "Close"])
+		df.index = pd.DatetimeIndex(df['Date'])
+		# df.index.name = "Date"
+		return df

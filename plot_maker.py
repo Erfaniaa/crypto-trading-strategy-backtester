@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import matplotlib
+import mplfinance as mpf
 
 
 class PlotMaker():
@@ -13,6 +14,18 @@ class PlotMaker():
 		plt.plot_date(x_axis, prices_list, '-')
 		plt.ylabel(y_axis_label)
 
+	@staticmethod
+	def add_candles_plot(candles_dataframe, candle_colors_list):
+		mpf.plot(candles_dataframe, type="candle", marketcolor_overrides=candle_colors_list, warn_too_much_data=10 ** 10)
+
+	@staticmethod
+	def save_candles_plot(candles_dataframe, candle_colors_list, file_path):
+		mpf.plot(candles_dataframe, type="candle", marketcolor_overrides=candle_colors_list, warn_too_much_data=10 ** 10, savefig=file_path)
+
+	@staticmethod
+	def clear_all_plots():
+		plt.clf()
+	
 	@staticmethod
 	def save_plot_to_file(file_path):
 		plt.savefig(file_path)

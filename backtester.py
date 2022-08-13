@@ -10,6 +10,7 @@ import utils
 import position
 import plot_maker
 import report_maker
+import candle
 from position_result_and_candles import PositionResultAndCandles
 
 
@@ -17,6 +18,12 @@ class Backtester():
 
 	POSITIONS_CSV_REPORT_COLUMN_NAMES = "Position type,Entry time,Exit time,Leverage,USDTs in position (no leverage),Entry price,Exit price,Profit % (no leverage),Take-profit price,Stop-loss price,Exit type"
 	DEPOSIT_CHANGES_CSV_REPORT_COLUMN_NAMES = "Start deposit,Final deposit,Total profit %,Min monthly deposit change %,Avg monthly deposit change %,Max monthly deposit change %,Min trimonthly deposit change %,Avg trimonthly deposit change %,Max trimonthly deposit change %,Min yearly deposit change %,Avg yearly deposit change %,Max yearly deposit change %"
+	
+	NO_POSITION = 0
+	OPEN_LONG_POSITION = 1
+	CLOSE_LONG_POSITION = 2
+	OPEN_SHORT_POSITION = 3
+	CLOSE_SHORT_POSITION = 4
 
 	def __init__(self, coins_symbol, start_deposit, leverage,
 				 open_position_fee_percent, close_position_fee_percent,
@@ -30,7 +37,7 @@ class Backtester():
 				 minimum_number_of_candles_to_start_trading, important_recent_candles_timeframe,
 				 important_recent_candles_count, coin_maximum_price, open_position_timeframe,
 				 test_set_size_ratio, plot_file_path, positions_csv_report_file_path,
-				 deposit_changes_csv_report_file_path):
+				 deposit_changes_csv_report_file_path, candles_plot_file_path):
 					self.coins_symbol = coins_symbol
 					self.start_deposit = start_deposit
 					self.total_first_coins = start_deposit
@@ -72,6 +79,7 @@ class Backtester():
 					self.plot_file_path = plot_file_path
 					self.positions_csv_report_file_path = positions_csv_report_file_path
 					self.deposit_changes_csv_report_file_path = deposit_changes_csv_report_file_path
+					self.candles_plot_file_path = candles_plot_file_path
 					self.candles_list = {}
 					self.open_short_positions_value = 0
 					self.open_long_positions_value = 0
@@ -141,13 +149,6 @@ class Backtester():
 		self.candles_low_and_high_to_open_percent_list.append(100 * (self.current_candle.high - self.current_candle.open) / self.current_candle.open)
 		self.candles_low_and_high_to_open_abs_percent_list.append(100 * abs(self.current_candle.low - self.current_candle.open) / self.current_candle.open)
 		self.candles_low_and_high_to_open_abs_percent_list.append(100 * abs(self.current_candle.high - self.current_candle.open) / self.current_candle.open)
-
-
-	def _init_plot_variables(self):
-		self.plot_close_prices = []
-		self.plot_datetimes = []
-		self.plot_deposits_list = []
-		self.plot_deposit_datetimes_list = []
 
 
 	def _init_indicators(self):
@@ -237,18 +238,18 @@ class Backtester():
 		self.recent_close_prices_list = [candle.close / self.coin_maximum_price for candle in self.important_recent_candles_list]
 
 
-	def _get_current_candle_in_another_timeframe(self, index_offset=-1):
+	def _get_current_candle_in_another_timeframe(self, timeframe, index_offset):
 		try:
-			if self.indicators_timeframe == "m15":
-				return self.candles_list[self.indicators_timeframe][self.candles_open_time_to_index_dict[self.indicators_timeframe][utils.round_down_m1_to_m15_time(self.current_candle.open_time)] + index_offset]
-			elif self.indicators_timeframe == "h1":
-				return self.candles_list[self.indicators_timeframe][self.candles_open_time_to_index_dict[self.indicators_timeframe][utils.round_down_m1_to_h1_time(self.current_candle.open_time)] + index_offset]
-			elif self.indicators_timeframe == "h2":
-				return self.candles_list[self.indicators_timeframe][self.candles_open_time_to_index_dict[self.indicators_timeframe][utils.round_down_m1_to_h2_time(self.current_candle.open_time)] + index_offset]
-			elif self.indicators_timeframe == "h4":
-				return self.candles_list[self.indicators_timeframe][self.candles_open_time_to_index_dict[self.indicators_timeframe][utils.round_down_m1_to_h4_time(self.current_candle.open_time)] + index_offset]
-			elif self.indicators_timeframe == "d1":
-				return self.candles_list[self.indicators_timeframe][self.candles_open_time_to_index_dict[self.indicators_timeframe][utils.round_down_m1_to_d1_time(self.current_candle.open_time)] + index_offset]
+			if timeframe == "m15":
+				return self.candles_list[timeframe][self.candles_open_time_to_index_dict[timeframe][utils.round_down_m1_to_m15_time(self.current_candle.open_time)] + index_offset]
+			elif timeframe == "h1":
+				return self.candles_list[timeframe][self.candles_open_time_to_index_dict[timeframe][utils.round_down_m1_to_h1_time(self.current_candle.open_time)] + index_offset]
+			elif timeframe == "h2":
+				return self.candles_list[timeframe][self.candles_open_time_to_index_dict[timeframe][utils.round_down_m1_to_h2_time(self.current_candle.open_time)] + index_offset]
+			elif timeframe == "h4":
+				return self.candles_list[timeframe][self.candles_open_time_to_index_dict[timeframe][utils.round_down_m1_to_h4_time(self.current_candle.open_time)] + index_offset]
+			elif timeframe == "d1":
+				return self.candles_list[timeframe][self.candles_open_time_to_index_dict[timeframe][utils.round_down_m1_to_d1_time(self.current_candle.open_time)] + index_offset]
 			else:
 				print("ERROR in get_current_candle_in_another_timeframe")
 		except:
@@ -271,11 +272,11 @@ class Backtester():
 		self.last_is_price_increasing = self.is_price_increasing
 		self.last_is_price_decreasing = self.is_price_decreasing
 		
-		self.fast_ema = indicators.get_new_ema(self.last_fast_ema, self._get_current_candle_in_another_timeframe(index_offset=-1).close, 1 * config.MOVING_AVERAGE_SIZE)
-		self.slow_ema = indicators.get_new_ema(self.last_slow_ema, self._get_current_candle_in_another_timeframe(index_offset=-1).close, 2 * config.MOVING_AVERAGE_SIZE)
+		self.fast_ema = indicators.get_new_ema(self.last_fast_ema, self._get_current_candle_in_another_timeframe(timeframe=self.indicators_timeframe, index_offset=-1).close, 1 * config.MOVING_AVERAGE_SIZE)
+		self.slow_ema = indicators.get_new_ema(self.last_slow_ema, self._get_current_candle_in_another_timeframe(timeframe=self.indicators_timeframe, index_offset=-1).close, 2 * config.MOVING_AVERAGE_SIZE)
 
-		self.macd_fast_ema = indicators.get_new_ema(self.last_macd_fast_ema, self._get_current_candle_in_another_timeframe(index_offset=-1).close, 12)
-		self.macd_slow_ema = indicators.get_new_ema(self.last_macd_slow_ema, self._get_current_candle_in_another_timeframe(index_offset=-1).close, 26)
+		self.macd_fast_ema = indicators.get_new_ema(self.last_macd_fast_ema, self._get_current_candle_in_another_timeframe(timeframe=self.indicators_timeframe, index_offset=-1).close, 12)
+		self.macd_slow_ema = indicators.get_new_ema(self.last_macd_slow_ema, self._get_current_candle_in_another_timeframe(timeframe=self.indicators_timeframe, index_offset=-1).close, 26)
 
 		self.macd_line = self.macd_fast_ema - self.macd_slow_ema
 		self.signal_line = indicators.get_new_ema(self.last_signal_line, self.macd_line, 9)
@@ -292,6 +293,8 @@ class Backtester():
 		self.plot_close_prices_datetimes_list = []
 		self.plot_deposits_list = []
 		self.plot_deposit_datetimes_list = []
+		self.plot_candles_list = []
+		self.plot_candle_colors_list = []
 	
 
 	def _update_plot_price_lists(self):
@@ -338,6 +341,34 @@ class Backtester():
 		if self.open_position_timeframe == "d1":
 			is_ontime = self.current_candle.open_time == utils.round_down_m1_to_d1_time(self.current_candle.open_time)
 		return is_positions_list_empty and is_ontime and not is_too_early and main_condition
+
+
+	def _update_plot_candles_list(self):
+		is_ontime = False
+		if self.open_position_timeframe == "m15":
+			is_ontime = self.current_candle.open_time == utils.round_down_m1_to_m15_time(self.current_candle.open_time)
+		if self.open_position_timeframe == "h1":
+			is_ontime = self.current_candle.open_time == utils.round_down_m1_to_h1_time(self.current_candle.open_time)
+		if self.open_position_timeframe == "h2":
+			is_ontime = self.current_candle.open_time == utils.round_down_m1_to_h2_time(self.current_candle.open_time)
+		if self.open_position_timeframe == "h4":
+			is_ontime = self.current_candle.open_time == utils.round_down_m1_to_h4_time(self.current_candle.open_time)
+		if self.open_position_timeframe == "d1":
+			is_ontime = self.current_candle.open_time == utils.round_down_m1_to_d1_time(self.current_candle.open_time)
+		if is_ontime:
+			candle = self._get_current_candle_in_another_timeframe(timeframe=self.open_position_timeframe, index_offset=0)
+			self.plot_candles_list.append(candle)
+			if self.position_status == self.NO_POSITION:
+				if candle.close >= candle.open:
+					self.plot_candle_colors_list.append("white")
+				else:
+					self.plot_candle_colors_list.append("white")
+			if self.position_status == self.OPEN_LONG_POSITION:
+				self.plot_candle_colors_list.append("green")
+			if self.position_status == self.OPEN_SHORT_POSITION:
+				self.plot_candle_colors_list.append("red")
+			if self.position_status == self.CLOSE_LONG_POSITION or self.position_status == self.CLOSE_SHORT_POSITION:
+				self.plot_candle_colors_list.append("black")
 
 
 	def _open_long_position(self):
@@ -403,6 +434,7 @@ class Backtester():
 			if self.current_candle.high > self.open_long_positions_list[i].take_profit_price or \
 				self.current_candle.low < self.open_long_positions_list[i].stop_loss_price or \
 				main_condition:
+					self.position_status = self.CLOSE_LONG_POSITION
 					recent_candles_list = self.open_long_positions_list[i].recent_candles_list
 					recent_candles_close_list = [candle.close for candle in recent_candles_list]
 					recent_candles_open_list = [candle.open for candle in recent_candles_list]
@@ -444,6 +476,7 @@ class Backtester():
 			if self.current_candle.high < self.open_short_positions_list[i].take_profit_price or \
 				self.current_candle.low > self.open_short_positions_list[i].stop_loss_price or \
 				main_condition:
+					self.position_status = self.CLOSE_SHORT_POSITION
 					recent_candles_list = self.open_short_positions_list[i].recent_candles_list
 					recent_candles_close_list = [candle.close for candle in recent_candles_list]
 					recent_candles_open_list = [candle.open for candle in recent_candles_list]
@@ -537,6 +570,11 @@ class Backtester():
 		plot_maker.PlotMaker.add_plot("deposit", self.plot_deposits_list, self.plot_deposit_datetimes_list, 2, 1, 1)
 		plot_maker.PlotMaker.add_plot(self.coins_symbol + " price", self.plot_close_prices_list, self.plot_close_prices_datetimes_list, 2, 1, 2)
 		plot_maker.PlotMaker.save_plot_to_file(self.plot_file_path)
+
+
+	def _show_and_save_candles_plot_to_file(self):
+		plot_maker.PlotMaker.add_candles_plot(candle.Candle.candles_list_to_pandas_dataframe(self.plot_candles_list), self.plot_candle_colors_list)
+		plot_maker.PlotMaker.save_candles_plot(candle.Candle.candles_list_to_pandas_dataframe(self.plot_candles_list), self.plot_candle_colors_list, self.candles_plot_file_path)
 
 
 	def _show_plots(self):
@@ -647,8 +685,11 @@ class Backtester():
 
 			self._update_important_recent_candles(self.important_recent_candles_timeframe)
 
+			self.position_status = self.NO_POSITION
+
 			if self.use_long_positions:
 				if self._is_it_time_to_open_long_position():
+					self.position_status = self.OPEN_LONG_POSITION
 					self._open_long_position()
 
 				self._update_open_long_positions_statistics()
@@ -659,6 +700,7 @@ class Backtester():
 
 			if self.use_short_positions:
 				if self._is_it_time_to_open_short_position():
+					self.position_status = self.OPEN_SHORT_POSITION
 					self._open_short_position()
 
 				self._update_open_short_positions_statistics()
@@ -667,6 +709,7 @@ class Backtester():
 
 				self._update_open_short_positions_value()
 
+			self._update_plot_candles_list()
 			self._update_plot_deposit_lists()
 		
 		print("Backtesting finished.\n")
@@ -687,6 +730,7 @@ class Backtester():
 		self._prepare_train_set_and_test_set()
 		self._save_train_set_and_test_set_to_csv()
 
+		self._show_and_save_candles_plot_to_file()
 		self._save_plots_to_file()
 
 		self._print_candles_statistical_parameters()

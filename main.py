@@ -39,6 +39,7 @@ if __name__ == "__main__":
 									   test_set_size_ratio=config.TEST_SET_SIZE_RATIO,
 									   plot_file_path=config.PLOT_FILE_PATH,
 									   positions_csv_report_file_path=config.POSITIONS_CSV_REPORT_FILE_PATH,
-									   deposit_changes_csv_report_file_path=config.DEPOSIT_CHANGES_CSV_REPORT_FILE_PATH)
+									   deposit_changes_csv_report_file_path=config.DEPOSIT_CHANGES_CSV_REPORT_FILE_PATH,
+									   candles_plot_file_path=config.CANDLES_PLOT_FILE_PATH)
 
 	backtester.backtest()
