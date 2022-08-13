@@ -22,8 +22,8 @@ class Backtester():
 	NO_POSITION = 0
 	OPEN_LONG_POSITION = 1
 	CLOSE_LONG_POSITION = 2
-	OPEN_SHORT_POSITION = 3
-	CLOSE_SHORT_POSITION = 4
+	OPEN_SHORT_POSITION = 4
+	CLOSE_SHORT_POSITION = 8
 
 	def __init__(self, coins_symbol, start_deposit, leverage,
 				 open_position_fee_percent, close_position_fee_percent,
@@ -83,6 +83,7 @@ class Backtester():
 					self.candles_list = {}
 					self.open_short_positions_value = 0
 					self.open_long_positions_value = 0
+					self.last_position_status = self.NO_POSITION
 					
 
 	def _download_or_load_candles(self, timeframe):
@@ -358,17 +359,14 @@ class Backtester():
 		if is_ontime:
 			candle = self._get_current_candle_in_another_timeframe(timeframe=self.open_position_timeframe, index_offset=0)
 			self.plot_candles_list.append(candle)
-			if self.position_status == self.NO_POSITION:
+			if self.last_position_status == self.NO_POSITION:
 				if candle.close >= candle.open:
 					self.plot_candle_colors_list.append("white")
 				else:
 					self.plot_candle_colors_list.append("white")
-			if self.position_status == self.OPEN_LONG_POSITION:
-				self.plot_candle_colors_list.append("green")
-			if self.position_status == self.OPEN_SHORT_POSITION:
-				self.plot_candle_colors_list.append("red")
-			if self.position_status == self.CLOSE_LONG_POSITION or self.position_status == self.CLOSE_SHORT_POSITION:
+			else:
 				self.plot_candle_colors_list.append("black")
+			self.last_position_status = self.NO_POSITION
 
 
 	def _open_long_position(self):
@@ -434,7 +432,7 @@ class Backtester():
 			if self.current_candle.high > self.open_long_positions_list[i].take_profit_price or \
 				self.current_candle.low < self.open_long_positions_list[i].stop_loss_price or \
 				main_condition:
-					self.position_status = self.CLOSE_LONG_POSITION
+					self.last_position_status += self.CLOSE_LONG_POSITION
 					recent_candles_list = self.open_long_positions_list[i].recent_candles_list
 					recent_candles_close_list = [candle.close for candle in recent_candles_list]
 					recent_candles_open_list = [candle.open for candle in recent_candles_list]
@@ -476,7 +474,7 @@ class Backtester():
 			if self.current_candle.high < self.open_short_positions_list[i].take_profit_price or \
 				self.current_candle.low > self.open_short_positions_list[i].stop_loss_price or \
 				main_condition:
-					self.position_status = self.CLOSE_SHORT_POSITION
+					self.last_position_status += self.CLOSE_SHORT_POSITION
 					recent_candles_list = self.open_short_positions_list[i].recent_candles_list
 					recent_candles_close_list = [candle.close for candle in recent_candles_list]
 					recent_candles_open_list = [candle.open for candle in recent_candles_list]
@@ -685,11 +683,9 @@ class Backtester():
 
 			self._update_important_recent_candles(self.important_recent_candles_timeframe)
 
-			self.position_status = self.NO_POSITION
-
 			if self.use_long_positions:
 				if self._is_it_time_to_open_long_position():
-					self.position_status = self.OPEN_LONG_POSITION
+					self.last_position_status += self.OPEN_LONG_POSITION
 					self._open_long_position()
 
 				self._update_open_long_positions_statistics()
@@ -700,7 +696,7 @@ class Backtester():
 
 			if self.use_short_positions:
 				if self._is_it_time_to_open_short_position():
-					self.position_status = self.OPEN_SHORT_POSITION
+					self.last_position_status += self.OPEN_SHORT_POSITION
 					self._open_short_position()
 
 				self._update_open_short_positions_statistics()
