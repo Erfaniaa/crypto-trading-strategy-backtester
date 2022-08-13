@@ -726,9 +726,6 @@ class Backtester():
 		self._prepare_train_set_and_test_set()
 		self._save_train_set_and_test_set_to_csv()
 
-		self._show_and_save_candles_plot_to_file()
-		self._save_plots_to_file()
-
 		self._print_candles_statistical_parameters()
 
 		self._prepare_closed_positions_statistics()
@@ -740,5 +737,5 @@ class Backtester():
 		self._save_closed_positions_to_csv()
 		self._save_deposit_changes_to_csv()
 
-		self._prepare_train_set_and_test_set()
-		self._save_train_set_and_test_set_to_csv()
+		self._show_and_save_candles_plot_to_file()
+		self._save_plots_to_file()
