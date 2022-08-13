@@ -12,6 +12,7 @@ Easy-to-use cryptocurrency trading strategy simulator
 - It generates many different statistical parameters in a complete report.
 - This project saves the downloaded data for offline usage, so no unnecessary downloads are required.
 - This project generates practical datasets for data scientists.
+- After backtesting, you can see the opened and closed positions on [an interactive chart](https://github.com/matplotlib/mplfinance).
 - You can read the code for educational purposes.
 
 ## Run
@@ -55,6 +56,7 @@ To define the strategy, you can:
 - A plot in `plot.png`, for example:
 
 ![plot](https://user-images.githubusercontent.com/7780269/183297991-5bfc0537-138d-4d8b-909c-f6272538ff59.png)
+- Another plot to see the opened and closed positions on [an interactive chart](https://github.com/matplotlib/mplfinance)
 - A complete report on candles statistics (as the program text output)
 - A complete report on opened and closed positions (as the program text output)
 - A complete report on the strategy (in `deposit_changes.csv`)
