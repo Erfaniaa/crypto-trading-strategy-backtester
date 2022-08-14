@@ -214,7 +214,7 @@ class Backtester():
 
 		if important_recent_candles_timeframe == "h2":
 			try:
-				recent_candles_list = self.candles_list["h2"][max(self.candles_open_time_to_index_dict["h2"][utils.round_down_m1_to_h2_time(self.current_candle.open_time)] - self.important_recent_candles_count, 0):self.candles_open_time_to_index_dict["h2"][utils.round_down_m1_to_h2_time(self.current_candle.open_time)]]
+				self.important_recent_candles_list = self.candles_list["h2"][max(self.candles_open_time_to_index_dict["h2"][utils.round_down_m1_to_h2_time(self.current_candle.open_time)] - self.important_recent_candles_count, 0):self.candles_open_time_to_index_dict["h2"][utils.round_down_m1_to_h2_time(self.current_candle.open_time)]]
 			except:
 				print("ERROR in update_important_recent_candles")
 				self.important_recent_candles_list = []
