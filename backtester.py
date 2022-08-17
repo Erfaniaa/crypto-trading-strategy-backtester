@@ -2,6 +2,7 @@ import os
 import pickle
 import random
 import datetime
+import pytz
 
 import indicators
 import config
@@ -48,8 +49,8 @@ class Backtester():
 					self.use_short_positions = use_short_positions
 					self.take_profit_percents_list = take_profit_percents_list
 					self.stop_loss_percents_list = stop_loss_percents_list
-					self.start_date = datetime.datetime(start_year, start_month, start_day, start_hour, start_minute, start_second)
-					self.end_date = datetime.datetime(end_year, end_month, end_day, end_hour, end_minute, end_second)
+					self.start_date = datetime.datetime(start_year, start_month, start_day, start_hour, start_minute, start_second, tzinfo=pytz.UTC).replace(tzinfo=pytz.UTC)
+					self.end_date = datetime.datetime(end_year, end_month, end_day, end_hour, end_minute, end_second, tzinfo=pytz.UTC).replace(tzinfo=pytz.UTC)
 					self.start_date_timestamp = int(self.start_date.timestamp() * 1000)
 					self.end_date_timestamp = int(self.end_date.timestamp() * 1000)
 					self.candles_file_path = {}
