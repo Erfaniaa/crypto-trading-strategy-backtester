@@ -4,6 +4,7 @@ import requests
 import json
 from types import SimpleNamespace
 import math
+import pytz
 
 
 def count_m1_candles(start_timestamp, end_timestamp):
@@ -51,10 +52,10 @@ def get_candles_in_range(symbol, interval, start_time, end_time, limit='1000'):
 	candles = []
 	i = 0
 	for u in m: 
-		otime = datetime.fromtimestamp(int(''.join(str(u[0]).split())[:-3]))
-		ctime = datetime.fromtimestamp(int(''.join(str(u[6]).split())[:-3]))
+		otime = datetime.utcfromtimestamp(int(''.join(str(u[0]).split())[:-3])).replace(tzinfo=pytz.UTC)
+		ctime = datetime.utcfromtimestamp(int(''.join(str(u[6]).split())[:-3])).replace(tzinfo=pytz.UTC)
 		i += 1
-		candles.append(Candle(otime.strftime('%Y-%m-%d %H:%M:%S'), float(u[1]), float(u[2]), float(u[3]), float(u[4]), u[5], ctime.strftime('%Y-%m-%d %H:%M:%S')))
+		candles.append(Candle(otime.astimezone(pytz.UTC).strftime('%Y-%m-%d %H:%M:%S'), float(u[1]), float(u[2]), float(u[3]), float(u[4]), u[5], ctime.astimezone(pytz.UTC).strftime('%Y-%m-%d %H:%M:%S')))
 	return candles
 
 
