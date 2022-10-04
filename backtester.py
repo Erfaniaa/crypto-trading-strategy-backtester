@@ -472,8 +472,8 @@ class Backtester():
 		main_condition = self.is_price_increasing and not self.last_is_price_increasing
 		open_short_positions_count = len(self.open_short_positions_list)
 		for i in reversed(range(open_short_positions_count)):
-			if self.current_candle.high < self.open_short_positions_list[i].take_profit_price or \
-				self.current_candle.low > self.open_short_positions_list[i].stop_loss_price or \
+			if self.current_candle.low < self.open_short_positions_list[i].take_profit_price or \
+				self.current_candle.high > self.open_short_positions_list[i].stop_loss_price or \
 				main_condition:
 					self.last_position_status += self.CLOSE_SHORT_POSITION
 					recent_candles_list = self.open_short_positions_list[i].recent_candles_list
