@@ -274,9 +274,9 @@ def get_candles_w1(start_timestamp, end_timestamp, symbol, show_log=True):
 		if show_log and (item % 10 == 0 or item == total_candles_count - 1):
 			print(item, "/", total_candles_count)
 		if end_date_timestamp_temp <= end_timestamp:
-			candles = get_candles_in_range(symbol,  f'1h', str(start_timestamp_temp), str(end_date_timestamp_temp), '1000')
+			candles = get_candles_in_range(symbol,  f'1w', str(start_timestamp_temp), str(end_date_timestamp_temp), '1000')
 		else:
-			candles = get_candles_in_range(symbol,  f'1h', str(start_timestamp_temp), str(end_timestamp), '1000')
+			candles = get_candles_in_range(symbol,  f'1w', str(start_timestamp_temp), str(end_timestamp), '1000')
 		for candle in candles:
 			arr.append(candle)
 		start_timestamp_temp = end_date_timestamp_temp + 604800000
