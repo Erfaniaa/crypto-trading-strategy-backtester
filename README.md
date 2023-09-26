@@ -57,11 +57,16 @@ To define the strategy, you can:
 
 ![plot](https://user-images.githubusercontent.com/7780269/183297991-5bfc0537-138d-4d8b-909c-f6272538ff59.png)
 - Another plot to see the opened and closed positions on [an interactive chart](https://github.com/matplotlib/mplfinance)
-- A complete report on candles statistics (as the program text output)
+- A complete report on candle statistics (as the program text output)
 - A complete report on opened and closed positions (as the program text output)
 - A complete report on the strategy (in `deposit_changes.csv`)
 - A spreadsheet containing opened and closed positions (in `positions.csv`)
 - Two datasets for data science and machine learning purposes (`test.csv` and `train.csv`)
+
+## To Do
+
+- Use 5m, 15m, 1h, etc. instead of m5, m15, h1, etc.
+- Use Python private methods in some cases
 
 ## See Also
 
