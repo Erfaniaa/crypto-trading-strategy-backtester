@@ -47,7 +47,7 @@ def get_candles_in_range(symbol, interval, start_time, end_time, limit='1000'):
 	start_time = int(start_time)
 	end_time = int(end_time)
 	headers = {'Content-Type': 'application/json; charset=utf-8', 'X-MBX-APIKEY': 'i8322dmyBsrk9A8dNBliUExbVHmDPbNn1cqvOAHZPWdYc7KGJ6kX767V3Dg7jWmo'}
-	r = requests.get(f"https://api.binance.com/api/v3/klines?symbol={symbol}&limit={limit}&startTime={start_time}&endTime={end_time}&interval={interval}", headers=headers)
+	r = requests.get(f"https://api.binance.com/api/v3/klines?symbol={symbol}&limit={limit}&startTime={start_time}&endTime={end_time}&interval={interval}", headers=headers, timeout=30)
 	m = json.loads(r.content, object_hook=lambda d: SimpleNamespace(**d))
 	candles = []
 	i = 0
